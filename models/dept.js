@@ -24,7 +24,6 @@ const Departments = sequelize.define("department", {
 
 Departments.sync();
 
-Employees.hasOne(Departments);
-Departments.belongsTo(Employees);
+Departments.hasMany(Employees);
 
 sequelize.sync({ force: true });

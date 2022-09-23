@@ -4,7 +4,6 @@ const sequelize = require("../util/database");
 const Employees = sequelize.define("employee", {
   id: {
     type: Sequelize.INTEGER,
-    autoIncrement: true,
     unique: true,
     primaryKey: true,
     allowNull: false,
@@ -25,7 +24,7 @@ const Employees = sequelize.define("employee", {
     allowNull: false,
   },
   phoneno: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     unique: true,
     allowNull: false,
   },

@@ -1,0 +1,490 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "version": "1.0.0",
+    "title": "Company Management",
+    "description": "List of Company's employees and departments",
+    "contact": {
+      "email": "xyz@gmail.com"
+    }
+  },
+  "host": "localhost:3000/",
+  "schemes": ["http"],
+  "consumes": ["application/json"],
+  "produces": ["application/json"],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["About company"],
+        "description": "Company details",
+        "summary": "Description about company",
+        "produces": "application/json",
+        "consumes": "application/json",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "string",
+              "description": "Displayed company details",
+              "example": "Company name"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/404error"
+            }
+          }
+        }
+      }
+    },
+
+    "/employee": {
+      "post": {
+        "tags": ["Employees"],
+        "description": "Employee details",
+        "summary": "Lists out employee details",
+        "produces": "application/json",
+        "consumes": "application/json",
+        "parameters": [
+          {
+            "name": "Add employee",
+            "required": ["id", "name", "salary", "age", "role", "phoneno"],
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/Employee"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "description": "New Employee data is added to the database",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "New Employee data added succesfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/400error"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Employees"],
+        "description": "Employee details",
+        "summary": "Lists out employee details",
+        "produces": "application/json",
+        "consumes": "application/json",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "description": "Displayed employee records",
+              "$ref": "#/definitions/Employee"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/404error"
+            }
+          }
+        }
+      }
+    },
+    "/employee/{employeeId}": {
+      "get": {
+        "tags": ["Employees"],
+        "summary": "Get an employee by ID",
+        "description": "Retrieve specific employee by their ID",
+        "produces": ["application/json"],
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "name": "employeeId",
+            "in": "path",
+            "description": "employee ID to find",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "description": "Employee data is retrieved from the database",
+              "$ref": "#/definitions/Employee"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/404error"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Employees"],
+        "summary": "Update employee by ID",
+        "description": "Update specific employee record by ID",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "employeeId",
+            "in": "path",
+            "description": "Employee ID that needs to be updated",
+            "require": true,
+            "type": "number"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Employee's updated details",
+            "require": true,
+            "schema": {
+              "$ref": "#/definitions/Employee"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "description": "Employee record is updated in the database",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Employee record updated succesfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/400error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/404error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Employees"],
+        "summary": "Delete an employee by ID",
+        "description": "Delete specifice employee by their ID",
+        "produces": ["application/json"],
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "name": "employeeId",
+            "in": "path",
+            "description": "Employee ID to delete",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "description": "Employee record is deleted from the database",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Employee data deleted succesfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/404error"
+            }
+          }
+        }
+      }
+    },
+    "/department": {
+      "post": {
+        "tags": ["Department"],
+        "summary": "Add department",
+        "description": "Add department to the database",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "in": "body",
+            "name": "body",
+            "required": ["id", "name", "deptphone"],
+            "schema": {
+              "$ref": "#/definitions/Department"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "description": "Department added to the database",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Department added succesfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/400error"
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": ["Department"],
+        "summary": "Lists out all departments",
+        "description": "Gets all departments",
+        "produces": "application/json",
+        "consumes": "application/json",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "array",
+              "description": "Retrieved all departments from the database",
+              "$ref": "#/definitions/Department"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/404error"
+            }
+          }
+        }
+      }
+    },
+    "/department/{deptID}": {
+      "get": {
+        "tags": ["Department"],
+        "summary": "Get department by ID",
+        "description": "Retrieve specific department by their ID",
+        "produces": ["application/json"],
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "name": "deptId",
+            "in": "path",
+            "description": "Department ID to find",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "description": "Department data is retrieved from the database",
+              "$ref": "#/definitions/Department"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/404error"
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": ["Department"],
+        "summary": "Update department by ID",
+        "description": "Update specific department by ID",
+        "consumes": ["application/json"],
+        "produces": ["application/json"],
+        "parameters": [
+          {
+            "name": "deptID",
+            "in": "path",
+            "description": "Department ID of department that needs to be updated",
+            "require": true,
+            "type": "number"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "Department's updated details",
+            "require": true,
+            "schema": {
+              "$ref": "#/definitions/Department"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "description": "Department record is updated in the database",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Department record updated succesfully"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request",
+            "schema": {
+              "$ref": "#/definitions/400error"
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/404error"
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Department"],
+        "summary": "Delete visitor by ID",
+        "description": "Delete specific visitor by their ID",
+        "produces": ["application/json"],
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "name": "deptId",
+            "in": "path",
+            "description": "Department ID of record to be deleted",
+            "required": true,
+            "type": "number"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "description": "Department has been deleted from the database",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Department deleted succesfully"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/404error"
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "definitions": {
+    "Employee": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "ID of the employee",
+          "example": "101"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the employee",
+          "example": "Lavender"
+        },
+        "salary": {
+          "type": "integer",
+          "description": "Salary of the employee",
+          "example": "30000"
+        },
+        "age": {
+          "type": "integer",
+          "description": "Age of the employee",
+          "example": "27"
+        },
+        "role": {
+          "type": "string",
+          "description": "Role of the employee",
+          "example": "MTS"
+        },
+        "phoneno": {
+          "type": "string",
+          "description": "Phone number of the employee",
+          "example": "9042332861"
+        }
+      }
+    },
+    "Department": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer",
+          "description": "ID of the department",
+          "example": "1"
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the department",
+          "example": "CRM"
+        }
+      }
+    },
+    "400error": {
+      "type": "object",
+      "description": "Bad request, please check request body",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Please check request body"
+        }
+      }
+    },
+    "404error": {
+      "type": "object",
+      "properties": {
+        "message": {
+          "type": "string",
+          "example": "Requested record not found"
+        }
+      }
+    }
+  }
+}

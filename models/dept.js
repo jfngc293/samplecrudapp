@@ -22,8 +22,9 @@ const Departments = sequelize.define("department", {
   },
 });
 
+Departments.hasMany(Employees);
 Departments.sync();
 
-Departments.hasMany(Employees);
+sequelize.sync({ force: false });
 
-sequelize.sync({ force: true });
+module.exports = Departments;

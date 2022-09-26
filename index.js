@@ -1,8 +1,12 @@
 const express = require("express");
 const path = require("path");
 const sequelize = require("./util/database");
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger.json");
 
 const app = express();
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use("/", require(path.join(__dirname, "router/employee.js")));
 

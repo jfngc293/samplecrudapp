@@ -44,12 +44,13 @@ route.post("/employee", async (req, res) => {
 route.get("/employee/:empid", async (req, res) => {
   try {
     const empid = req.params.empid;
-    const emp = await Employees.findAll({
+    const emp = await Employees.findOne({
       where: {
         id: empid,
       },
+      include: Departments,
     });
-    if (emp.length > 0) {
+    if (emp != 0) {
       res.json(emp);
     } else {
       res.status(404).send("Record not found");
@@ -182,6 +183,26 @@ route.delete("/department/:deptid", async (req, res) => {
       dept.destroy();
       res.json({ dept });
     }
+  } catch (err) {
+    res.send(err);
+  }
+});
+
+route.get("/department/employeelist/:deptname", async (req, res) => {
+  try {
+    const deptname = req.params.deptname;
+    const dept = await Departments.findOne({
+      where: {
+        name: deptname,
+      },
+    });
+    const deptid = dept.id;
+    const emp = await Employees.findAll({
+      where: {
+        departmentId: deptid,
+      },
+    });
+    res.json(emp);
   } catch (err) {
     res.send(err);
   }

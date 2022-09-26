@@ -43,8 +43,8 @@
     "/employee": {
       "post": {
         "tags": ["Employees"],
-        "description": "Employee details",
-        "summary": "Lists out employee details",
+        "description": "Add employee",
+        "summary": "Adds an employee to database",
         "produces": "application/json",
         "consumes": "application/json",
         "parameters": [
@@ -403,6 +403,40 @@
                   "example": "Department deleted succesfully"
                 }
               }
+            }
+          },
+          "404": {
+            "description": "Not found",
+            "schema": {
+              "$ref": "#/definitions/404error"
+            }
+          }
+        }
+      }
+    },
+    "/department/employeelist/{deptname}": {
+      "get": {
+        "tags": ["Miscallaneous"],
+        "summary": "List out all employees in a department",
+        "description": "Retrieves all the employees in a department",
+        "produces": ["application/json"],
+        "consumes": ["application/json"],
+        "parameters": [
+          {
+            "name": "deptName",
+            "in": "path",
+            "description": "Department name to find",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "schema": {
+              "type": "object",
+              "description": "Employee data is retrieved from the database",
+              "$ref": "#/definitions/Employee"
             }
           },
           "404": {

@@ -5,7 +5,6 @@ const Employees = require("../models/employee");
 const Departments = sequelize.define("department", {
   id: {
     type: Sequelize.INTEGER,
-    autoIncrement: true,
     allowNull: false,
     primaryKey: true,
     unique: true,
@@ -23,8 +22,11 @@ const Departments = sequelize.define("department", {
 });
 
 Departments.hasMany(Employees);
+Employees.belongsTo(Departments);
+
+Employees.sync();
 Departments.sync();
 
-sequelize.sync({ force: false });
+sequelize.sync({ alter: true });
 
 module.exports = Departments;

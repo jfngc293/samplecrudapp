@@ -14,8 +14,19 @@ route.use(express.json());
 
 route.get("/", async (req, res) => {
   try {
-    const employees = await Employees.findAll();
-    res.json(employees);
+    console.log(req.query.name);
+    if (req.query.name == undefined) {
+      const employees = await Employees.findAll();
+      res.json(employees);
+    } else {
+      const empname = req.query.name;
+      const emp = await Employees.findOne({
+        where: {
+          name: empname,
+        },
+      });
+      res.json(emp);
+    }
   } catch (err) {
     res.status(500).send(err);
   }

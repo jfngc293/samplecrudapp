@@ -1,20 +1,18 @@
 const express = require("express");
 const Employees = require("../models/employee");
 const Departments = require("../models/dept");
-const swaggerJsDoc = require("../swagger.json");
-const swaggerUI = require("swagger-ui-express");
+const sequelize = require("sequelize");
+const { validate, ValidationError, Joi } = require("express-validation");
+const {
+  employeeValidation,
+  employeeIdValidation,
+} = require("../validation/empvalidation");
 
 const route = express.Router();
 
 route.use(express.json());
 
-route.use("/docs", swaggerUI.serve, swaggerUI.setup(swaggerJsDoc));
-
-route.get("/", (req, res) => {
-  res.send("ZOHO");
-});
-
-route.get("/employee", async (req, res) => {
+route.get("/", async (req, res) => {
   try {
     const employees = await Employees.findAll();
     res.json(employees);
@@ -23,7 +21,7 @@ route.get("/employee", async (req, res) => {
   }
 });
 
-route.post("/employee", async (req, res) => {
+route.post("/", validate(employeeValidation, {}, {}), async (req, res) => {
   try {
     const emp = await Employees.create({
       id: req.body.id,
@@ -41,171 +39,100 @@ route.post("/employee", async (req, res) => {
   }
 });
 
-route.get("/employee/:empid", async (req, res) => {
-  try {
-    const empid = req.params.empid;
-    const emp = await Employees.findOne({
-      where: {
-        id: empid,
-      },
-      include: Departments,
-    });
-    if (emp != 0) {
-      res.json(emp);
-    } else {
-      res.status(404).send("Record not found");
-    }
-  } catch (err) {
-    res.status(500).send(err);
-  }
-});
-
-route.put("/employee/:empid", async (req, res) => {
-  try {
-    const empid = req.params.empid;
-    const emp = await Employees.findOne({
-      where: {
-        id: empid,
-      },
-    });
-    if (emp == null) {
-      res.status(404).send("Employee record not found");
-    } else {
-      await emp.update({
-        id: req.body.id,
-        name: req.body.name,
-        salary: req.body.salary,
-        age: req.body.age,
-        role: req.body.role,
-        phoneno: req.body.phoneno,
-        departmentId: req.body.departmentId,
+route.get(
+  "/:empid",
+  validate(employeeIdValidation, {}, {}),
+  async (req, res) => {
+    try {
+      const empid = req.params.empid;
+      const emp = await Employees.findOne({
+        where: {
+          id: empid,
+        },
+        include: Departments,
       });
-      res.status(201).json({ emp });
+      if (emp != 0) {
+        res.json(emp);
+      } else {
+        res.status(404).send("Record not found");
+      }
+    } catch (err) {
+      res.status(500).send(err);
     }
-  } catch (err) {
-    res.send(err);
   }
-});
+);
 
-route.delete("/employee/:empid", async (req, res) => {
-  try {
-    const empid = req.params.empid;
-    const emp = await Employees.findOne({
-      where: {
-        id: empid,
-      },
-    });
-    if (emp == null) {
-      res.status(404).send("Employee record not found");
-    } else {
-      emp.destroy();
-      res.json({ emp });
-    }
-  } catch (err) {
-    res.send(err);
-  }
-});
-
-route.post("/department", async (req, res) => {
-  try {
-    const dept = await Departments.create({
-      id: req.body.id,
-      name: req.body.name,
-      deptphone: req.body.deptphone,
-    });
-    res.status(201).json({ dept });
-  } catch (err) {
-    res.status(500).send(err);
-  }
-});
-
-route.get("/department", async (req, res) => {
-  try {
-    const dept = await Departments.findAll();
-    res.json(dept);
-  } catch (err) {
-    res.status(500).send(err);
-  }
-});
-
-route.get("/department/:deptid", async (req, res) => {
-  try {
-    const deptid = req.params.deptid;
-    const dept = await Departments.findAll({
-      where: {
-        id: deptid,
-      },
-    });
-    if (dept.length > 0) {
-      res.json(dept);
-    } else {
-      res.status(404).send("Record not found");
-    }
-  } catch (err) {
-    res.status(500).send(err);
-  }
-});
-
-route.put("/department/:deptid", async (req, res) => {
-  try {
-    const deptid = req.params.deptid;
-    const dept = await Departments.findOne({
-      where: {
-        id: deptid,
-      },
-    });
-    if (dept == null) {
-      res.status(404).send("Record not found");
-    } else {
-      await dept.update({
-        id: req.body.id,
-        name: req.body.name,
-        deptphone: req.body.deptphone,
+route.put(
+  "/:empid",
+  validate(employeeIdValidation, {}, {}),
+  async (req, res) => {
+    try {
+      const empid = req.params.empid;
+      const emp = await Employees.findOne({
+        where: {
+          id: empid,
+        },
       });
-      res.status(201).json({ dept });
+      if (emp == null) {
+        res.status(404).send("Employee record not found");
+      } else {
+        await emp.update({
+          id: req.body.id,
+          name: req.body.name,
+          salary: req.body.salary,
+          age: req.body.age,
+          role: req.body.role,
+          phoneno: req.body.phoneno,
+          departmentId: req.body.departmentId,
+        });
+        res.status(201).json({ emp });
+      }
+    } catch (err) {
+      res.send(err);
     }
-  } catch (err) {
-    res.send(err);
   }
+);
+
+route.delete(
+  "/:empid",
+  validate(employeeIdValidation, {}, {}),
+  async (req, res) => {
+    try {
+      const empid = req.params.empid;
+      const emp = await Employees.findOne({
+        where: {
+          id: empid,
+        },
+      });
+      if (emp == null) {
+        res.status(404).send("Employee record not found");
+      } else {
+        emp.destroy();
+        res.json({ emp });
+      }
+    } catch (err) {
+      res.send(err);
+    }
+  }
+);
+
+route.get("/test", async (req, res) => {
+  const emp = await Employees.findAll({
+    attributes: [
+      "role",
+      [sequelize.fn("count", sequelize.col("role")), "count"],
+    ],
+    group: "role",
+  });
+  res.json(emp);
 });
 
-route.delete("/department/:deptid", async (req, res) => {
-  try {
-    const deptid = req.params.deptid;
-    const dept = await Departments.findOne({
-      where: {
-        id: deptid,
-      },
-    });
-    if (dept == null) {
-      res.status(404).send("Department not found");
-    } else {
-      dept.destroy();
-      res.json({ dept });
-    }
-  } catch (err) {
-    res.send(err);
+route.use(function (err, req, res, next) {
+  if (err instanceof ValidationError) {
+    return res.status(err.statusCode).json(err);
   }
-});
 
-route.get("/department/employeelist/:deptname", async (req, res) => {
-  try {
-    const deptname = req.params.deptname;
-    const dept = await Departments.findOne({
-      where: {
-        name: deptname,
-      },
-    });
-    const deptid = dept.id;
-    const emp = await Employees.findAll({
-      where: {
-        departmentId: deptid,
-      },
-    });
-    res.json(emp);
-  } catch (err) {
-    res.send(err);
-  }
+  return res.status(500).json(err);
 });
 
 module.exports = route;

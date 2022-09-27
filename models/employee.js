@@ -30,6 +30,4 @@ const Employees = sequelize.define("employee", {
   },
 });
 
-Employees.sync();
-
 module.exports = Employees;

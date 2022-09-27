@@ -1,6 +1,5 @@
 const Sequelize = require("sequelize");
 const sequelize = require("../util/database");
-const Employees = require("../models/employee");
 
 const Departments = sequelize.define("department", {
   id: {
@@ -20,13 +19,5 @@ const Departments = sequelize.define("department", {
     allowNull: false,
   },
 });
-
-Departments.hasMany(Employees);
-Employees.belongsTo(Departments);
-
-Employees.sync();
-Departments.sync();
-
-sequelize.sync({ alter: true });
 
 module.exports = Departments;

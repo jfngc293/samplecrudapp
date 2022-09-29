@@ -5,11 +5,13 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerDocument = require("./swagger.json");
 const Employees = require("./models/employee");
 const Departments = require("./models/dept");
+const apiLimiter = require("./ratelimit");
 
 const app = express();
 
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use(apiLimiter);
 
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/employee", require(path.join(__dirname, "router/employee.js")));
 app.use("/department", require(path.join(__dirname, "router/dept.js")));
 

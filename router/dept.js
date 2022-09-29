@@ -13,12 +13,22 @@ route.use(express.json());
 
 route.post("/", validate(deptValidation, {}, {}), async (req, res) => {
   try {
-    const dept = await Departments.create({
-      id: req.body.id,
-      name: req.body.name,
-      deptphone: req.body.deptphone,
+    const deptid = req.body.id;
+    const tDept = await Departments.findOne({
+      where: {
+        id: deptid,
+      },
     });
-    res.status(201).json({ dept });
+    if (tDept == null) {
+      const dept = await Departments.create({
+        id: req.body.id,
+        name: req.body.name,
+        deptphone: req.body.deptphone,
+      });
+      res.status(201).json({ dept });
+    } else {
+      res.json({ message: "Department with same ID exists!" });
+    }
   } catch (err) {
     res.status(500).send(err);
   }
@@ -53,6 +63,7 @@ route.get("/:deptid", validate(deptIdValidation, {}, {}), async (req, res) => {
 
 route.put("/:deptid", validate(deptIdValidation, {}, {}), async (req, res) => {
   try {
+    let flag = 0;
     const deptid = req.params.deptid;
     const dept = await Departments.findOne({
       where: {
@@ -62,12 +73,33 @@ route.put("/:deptid", validate(deptIdValidation, {}, {}), async (req, res) => {
     if (dept == null) {
       res.status(404).send("Record not found");
     } else {
-      await dept.update({
-        id: req.body.id,
-        name: req.body.name,
-        deptphone: req.body.deptphone,
-      });
-      res.status(201).json({ dept });
+      if (req.body.id != deptid) {
+        flag = 1;
+      }
+      if (!flag) {
+        await dept.update({
+          id: req.body.id,
+          name: req.body.name,
+          deptphone: req.body.deptphone,
+        });
+        res.status(201).json({ dept });
+      } else {
+        const tDept = await Departments.findOne({
+          where: {
+            id: req.body.id,
+          },
+        });
+        if (tDept == null) {
+          await dept.update({
+            id: req.body.id,
+            name: req.body.name,
+            deptphone: req.body.deptphone,
+          });
+          res.status(201).json({ dept });
+        } else {
+          res.json({ message: "Department with same ID exists!" });
+        }
+      }
     }
   } catch (err) {
     res.send(err);

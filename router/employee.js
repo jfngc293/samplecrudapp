@@ -34,16 +34,26 @@ route.get("/", async (req, res) => {
 
 route.post("/", validate(employeeValidation, {}, {}), async (req, res) => {
   try {
-    const emp = await Employees.create({
-      id: req.body.id,
-      name: req.body.name,
-      salary: req.body.salary,
-      age: req.body.age,
-      role: req.body.role,
-      phoneno: req.body.phoneno,
-      departmentId: req.body.departmentId,
+    const empid = req.body.id;
+    const tEmp = await Employees.findOne({
+      where: {
+        id: empid,
+      },
     });
-    res.status(201).json({ emp });
+    if (tEmp == null) {
+      const emp = await Employees.create({
+        id: req.body.id,
+        name: req.body.name,
+        salary: req.body.salary,
+        age: req.body.age,
+        role: req.body.role,
+        phoneno: req.body.phoneno,
+        departmentId: req.body.departmentId,
+      });
+      res.status(201).json({ emp });
+    } else {
+      res.json({ message: "Employee with same ID exists" });
+    }
   } catch (err) {
     console.log(err);
     res.status(500).send(err);
@@ -62,7 +72,7 @@ route.get(
         },
         include: Departments,
       });
-      if (emp != 0) {
+      if (emp != null) {
         res.json(emp);
       } else {
         res.status(404).send("Record not found");
@@ -78,6 +88,7 @@ route.put(
   validate(employeeIdValidation, {}, {}),
   async (req, res) => {
     try {
+      let flag = 0;
       const empid = req.params.empid;
       const emp = await Employees.findOne({
         where: {
@@ -87,16 +98,41 @@ route.put(
       if (emp == null) {
         res.status(404).send("Employee record not found");
       } else {
-        await emp.update({
-          id: req.body.id,
-          name: req.body.name,
-          salary: req.body.salary,
-          age: req.body.age,
-          role: req.body.role,
-          phoneno: req.body.phoneno,
-          departmentId: req.body.departmentId,
-        });
-        res.status(201).json({ emp });
+        if (req.body.id != empid) {
+          flag = 1;
+        }
+        if (!flag) {
+          await emp.update({
+            id: req.body.id,
+            name: req.body.name,
+            salary: req.body.salary,
+            age: req.body.age,
+            role: req.body.role,
+            phoneno: req.body.phoneno,
+            departmentId: req.body.departmentId,
+          });
+          res.status(201).json({ emp });
+        } else {
+          const tEmp = await Employees.findOne({
+            where: {
+              id: req.body.id,
+            },
+          });
+          if (tEmp == null) {
+            await emp.update({
+              id: req.body.id,
+              name: req.body.name,
+              salary: req.body.salary,
+              age: req.body.age,
+              role: req.body.role,
+              phoneno: req.body.phoneno,
+              departmentId: req.body.departmentId,
+            });
+            res.status(201).json(emp);
+          } else {
+            res.json({ message: "Employee with same ID exists!" });
+          }
+        }
       }
     } catch (err) {
       res.send(err);

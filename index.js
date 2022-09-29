@@ -6,34 +6,55 @@ const swaggerDocument = require("./swagger.json");
 const Employees = require("./models/employee");
 const Departments = require("./models/dept");
 const apiLimiter = require("./ratelimit");
+const cluster = require("cluster");
+const numCPUs = require("os").cpus().length;
 
-const app = express();
+if (cluster.isMaster) {
+  masterProcess();
+} else {
+  childProcess();
+}
 
-app.use(apiLimiter);
+function masterProcess() {
+  console.log(`Master ${process.pid} is running`);
 
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-app.use("/employee", require(path.join(__dirname, "router/employee.js")));
-app.use("/department", require(path.join(__dirname, "router/dept.js")));
-
-app.use((req, res) => {
-  res.status(404).send("The requested page was not found on this server");
-});
-
-(async () => {
-  try {
-    await sequelize.authenticate();
-    console.log("Connection has been established successfully.");
-    Departments.hasMany(Employees);
-    Employees.belongsTo(Departments);
-    Employees.sync();
-    Departments.sync();
-    sequelize.sync({ alter: true });
-  } catch (error) {
-    console.error("Unable to connect to the database:", error);
+  for (let i = 0; i < numCPUs; i++) {
+    console.log(`Forking process number ${i}...`);
+    cluster.fork();
   }
-})();
+}
 
-let server = app.listen(3000, () => {
-  var port = server.address().port;
-  console.log(`Listening at http://localhost:${port}`);
-});
+function childProcess() {
+  console.log(`Worker ${process.pid} started...`);
+
+  const app = express();
+
+  app.use(apiLimiter);
+
+  app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  app.use("/employee", require(path.join(__dirname, "router/employee.js")));
+  app.use("/department", require(path.join(__dirname, "router/dept.js")));
+
+  app.use((req, res) => {
+    res.status(404).send("The requested page was not found on this server");
+  });
+
+  (async () => {
+    try {
+      await sequelize.authenticate();
+      console.log("Connection has been established successfully.");
+      Departments.hasMany(Employees);
+      Employees.belongsTo(Departments);
+      Employees.sync();
+      Departments.sync();
+      sequelize.sync({ alter: true });
+    } catch (error) {
+      console.error("Unable to connect to the database:", error);
+    }
+  })();
+
+  let server = app.listen(3000, () => {
+    var port = server.address().port;
+    console.log(`Listening at http://localhost:${port}`);
+  });
+}

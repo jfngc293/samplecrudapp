@@ -1,12 +1,18 @@
 const express = require("express");
 const Employees = require("../models/employee");
-const Departments = require("../models/dept");
 const sequelize = require("sequelize");
 const { validate, ValidationError, Joi } = require("express-validation");
 const {
   employeeValidation,
   employeeIdValidation,
 } = require("../validation/empvalidation");
+const {
+  findEmployeebyID,
+  createEmployee,
+  findEmployeebyName,
+  checkEmployeebyId,
+  updateEmployee,
+} = require("../services/empservice");
 
 const route = express.Router();
 
@@ -14,17 +20,13 @@ route.use(express.json());
 
 route.get("/", async (req, res) => {
   try {
-    console.log(req.query.name);
+    // console.log(req.query.name);
     if (req.query.name == undefined) {
       const employees = await Employees.findAll();
       res.json(employees);
     } else {
       const empname = req.query.name;
-      const emp = await Employees.findOne({
-        where: {
-          name: empname,
-        },
-      });
+      const emp = await findEmployeebyName(empname);
       res.json(emp);
     }
   } catch (err) {
@@ -35,21 +37,9 @@ route.get("/", async (req, res) => {
 route.post("/", validate(employeeValidation, {}, {}), async (req, res) => {
   try {
     const empid = req.body.id;
-    const tEmp = await Employees.findOne({
-      where: {
-        id: empid,
-      },
-    });
-    if (tEmp == null) {
-      const emp = await Employees.create({
-        id: req.body.id,
-        name: req.body.name,
-        salary: req.body.salary,
-        age: req.body.age,
-        role: req.body.role,
-        phoneno: req.body.phoneno,
-        departmentId: req.body.departmentId,
-      });
+    const employee = req.body;
+    if (await checkEmployeebyId(empid)) {
+      const emp = await createEmployee(employee);
       res.status(201).json({ emp });
     } else {
       res.json({ message: "Employee with same ID exists" });
@@ -66,12 +56,7 @@ route.get(
   async (req, res) => {
     try {
       const empid = req.params.empid;
-      const emp = await Employees.findOne({
-        where: {
-          id: empid,
-        },
-        include: Departments,
-      });
+      const emp = await findEmployeebyID(empid);
       if (emp != null) {
         res.json(emp);
       } else {
@@ -90,11 +75,7 @@ route.put(
     try {
       let flag = 0;
       const empid = req.params.empid;
-      const emp = await Employees.findOne({
-        where: {
-          id: empid,
-        },
-      });
+      const emp = await findEmployeebyID(empid);
       if (emp == null) {
         res.status(404).send("Employee record not found");
       } else {
@@ -102,33 +83,12 @@ route.put(
           flag = 1;
         }
         if (!flag) {
-          await emp.update({
-            id: req.body.id,
-            name: req.body.name,
-            salary: req.body.salary,
-            age: req.body.age,
-            role: req.body.role,
-            phoneno: req.body.phoneno,
-            departmentId: req.body.departmentId,
-          });
-          res.status(201).json({ emp });
+          let uemp = await updateEmployee(empid, req.body);
+          res.status(201).json(uemp);
         } else {
-          const tEmp = await Employees.findOne({
-            where: {
-              id: req.body.id,
-            },
-          });
-          if (tEmp == null) {
-            await emp.update({
-              id: req.body.id,
-              name: req.body.name,
-              salary: req.body.salary,
-              age: req.body.age,
-              role: req.body.role,
-              phoneno: req.body.phoneno,
-              departmentId: req.body.departmentId,
-            });
-            res.status(201).json(emp);
+          if (await checkEmployeebyId(req.body.id)) {
+            let uemp = await updateEmployee(empid, req.body);
+            res.status(201).json(uemp);
           } else {
             res.json({ message: "Employee with same ID exists!" });
           }
@@ -146,16 +106,12 @@ route.delete(
   async (req, res) => {
     try {
       const empid = req.params.empid;
-      const emp = await Employees.findOne({
-        where: {
-          id: empid,
-        },
-      });
+      const emp = await findEmployeebyID(empid);
       if (emp == null) {
         res.status(404).send("Employee record not found");
       } else {
         emp.destroy();
-        res.json({ emp });
+        res.json({ deleted: emp });
       }
     } catch (err) {
       res.send(err);

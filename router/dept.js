@@ -5,7 +5,14 @@ const { validate, ValidationError, Joi } = require("express-validation");
 const {
   deptValidation,
   deptIdValidation,
+  deptIdqueryValidation,
 } = require("../validation/deptvalidation");
+const {
+  checkDeptbyId,
+  createDept,
+  findDeptbyId,
+  updateDept,
+} = require("../services/deptservices");
 
 const route = express.Router();
 
@@ -13,31 +20,41 @@ route.use(express.json());
 
 route.post("/", validate(deptValidation, {}, {}), async (req, res) => {
   try {
-    const deptid = req.body.id;
-    const tDept = await Departments.findOne({
-      where: {
-        id: deptid,
-      },
-    });
-    if (tDept == null) {
-      const dept = await Departments.create({
-        id: req.body.id,
-        name: req.body.name,
-        deptphone: req.body.deptphone,
-      });
+    // const deptid = req.body.id;
+    if (await checkDeptbyId(req.body)) {
+      const dept = await createDept(req.body);
       res.status(201).json({ dept });
     } else {
-      res.json({ message: "Department with same ID exists!" });
+      res.json({ message: "Department with similar ID or name exists!" });
     }
   } catch (err) {
     res.status(500).send(err);
   }
 });
 
-route.get("/", async (req, res) => {
+route.get("/", validate(deptIdqueryValidation), async (req, res) => {
   try {
-    const dept = await Departments.findAll();
-    res.json(dept);
+    if (req.query.id == undefined) {
+      const dept = await Departments.findAll();
+      res.json(dept);
+    } else {
+      const deptid = req.query.id;
+      const dept = await findDeptbyId(deptid);
+      if (dept == null) {
+        res.status(404).send("Department not found");
+      } else {
+        const emp = await Employees.findAll({
+          where: {
+            departmentId: deptid,
+          },
+        });
+        if (emp.length > 0) {
+          res.json(emp);
+        } else {
+          res.json({ message: "No employee in this department" });
+        }
+      }
+    }
   } catch (err) {
     res.status(500).send(err);
   }
@@ -65,11 +82,7 @@ route.put("/:deptid", validate(deptIdValidation, {}, {}), async (req, res) => {
   try {
     let flag = 0;
     const deptid = req.params.deptid;
-    const dept = await Departments.findOne({
-      where: {
-        id: deptid,
-      },
-    });
+    const dept = await findDeptbyId(deptid);
     if (dept == null) {
       res.status(404).send("Record not found");
     } else {
@@ -77,25 +90,13 @@ route.put("/:deptid", validate(deptIdValidation, {}, {}), async (req, res) => {
         flag = 1;
       }
       if (!flag) {
-        await dept.update({
-          id: req.body.id,
-          name: req.body.name,
-          deptphone: req.body.deptphone,
-        });
-        res.status(201).json({ dept });
+        console.log(req.body);
+        let udept = await updateDept(deptid, req.body);
+        res.status(201).json(udept);
       } else {
-        const tDept = await Departments.findOne({
-          where: {
-            id: req.body.id,
-          },
-        });
-        if (tDept == null) {
-          await dept.update({
-            id: req.body.id,
-            name: req.body.name,
-            deptphone: req.body.deptphone,
-          });
-          res.status(201).json({ dept });
+        if (await checkDeptbyId(req.body.id)) {
+          let udept = updateDept(deptid, req.body);
+          res.status(201).json(udept);
         } else {
           res.json({ message: "Department with same ID exists!" });
         }
@@ -112,42 +113,18 @@ route.delete(
   async (req, res) => {
     try {
       const deptid = req.params.deptid;
-      const dept = await Departments.findOne({
-        where: {
-          id: deptid,
-        },
-      });
+      const dept = await findDeptbyId(deptid);
       if (dept == null) {
         res.status(404).send("Department not found");
       } else {
         dept.destroy();
-        res.json({ dept });
+        res.json({ deleted: dept });
       }
     } catch (err) {
       res.send(err);
     }
   }
 );
-
-route.get("/employeelist/:deptname", async (req, res) => {
-  try {
-    const deptname = req.params.deptname;
-    const dept = await Departments.findOne({
-      where: {
-        name: deptname,
-      },
-    });
-    const deptid = dept.id;
-    const emp = await Employees.findAll({
-      where: {
-        departmentId: deptid,
-      },
-    });
-    res.json(emp);
-  } catch (err) {
-    res.send(err);
-  }
-});
 
 route.use(function (err, req, res, next) {
   if (err instanceof ValidationError) {

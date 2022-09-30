@@ -14,4 +14,10 @@ const deptIdValidation = {
   }),
 };
 
-module.exports = { deptValidation, deptIdValidation };
+const deptIdqueryValidation = {
+  query: Joi.object({
+    id: Joi.number().integer(),
+  }),
+};
+
+module.exports = { deptValidation, deptIdValidation, deptIdqueryValidation };

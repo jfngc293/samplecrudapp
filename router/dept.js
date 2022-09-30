@@ -1,7 +1,7 @@
 const express = require("express");
 const Employees = require("../models/employee");
 const Departments = require("../models/dept");
-const { validate, ValidationError, Joi } = require("express-validation");
+const { validate, ValidationError } = require("express-validation");
 const {
   deptValidation,
   deptIdValidation,

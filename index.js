@@ -32,8 +32,8 @@ function childProcess() {
   app.use(apiLimiter);
 
   app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-  app.use("/employee", require(path.join(__dirname, "router/employee.js")));
-  app.use("/department", require(path.join(__dirname, "router/dept.js")));
+  app.use("/employees", require(path.join(__dirname, "router/employee.js")));
+  app.use("/departments", require(path.join(__dirname, "router/dept.js")));
 
   app.use((req, res) => {
     res.status(404).send("The requested page was not found on this server");
